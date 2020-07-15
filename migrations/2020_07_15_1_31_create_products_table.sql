@@ -1,0 +1,10 @@
+CREATE TABLE products (
+    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    identity VARCHAR(100) NOT NULL,
+    link VARCHAR(200) NOT NULL,
+    image VARCHAR(255) NOT NULL,
+    image_url VARCHAR(255) NOT NULL,
+    name VARCHAR(50) NULL,
+    price SMALLINT NOT NULL,
+    discount_price SMALLINT NOT NULL
+);
