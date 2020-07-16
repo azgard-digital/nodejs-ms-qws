@@ -4,7 +4,5 @@ CREATE TABLE products (
     link VARCHAR(200) NOT NULL,
     image VARCHAR(255) NOT NULL,
     image_url VARCHAR(255) NOT NULL,
-    name VARCHAR(50) NULL,
-    price SMALLINT NOT NULL,
-    discount_price SMALLINT NOT NULL
+    name VARCHAR(50) NULL
 );
