@@ -26,7 +26,7 @@ class Products {
         let data = []
 
         try {
-            data = await this.#db(`select p.id, dp.discount_price, dp.price, p.link, p.image, p.name
+            data = await this.#db(`select dp.id, dp.discount_price, dp.price, p.link, p.image, p.name
                             from daily_products as dp
                             join products as p on p.id = dp.product_id
                             where dp.id IN(?)`, [ids.join(',')])

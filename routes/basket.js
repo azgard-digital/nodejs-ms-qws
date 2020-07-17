@@ -1,47 +1,65 @@
-const express = require('express');
-const router = express.Router();
+const express = require('express')
+const router = express.Router()
 const ProductModel = require('../models/Products')
+const prefix = 'product_'
 
-router.get('/', async function(req, res, next) {
-  let products = req.session.products;
+router.get('/', async function(req, res) {
+  let products = req.session.products || {}
 
-  if (Array.isArray(products) && products.length > 0) {
-    const model = new ProductModel(req.db);
-    products = await model.getBasketProducts(products);
+  if (Object.keys(products).length !== 0) {
+    const model = new ProductModel(req.db)
+    const ids = []
+
+    for (let index in products) {
+      ids.push(products[index].product_id)
+    }
+    const basketProducts = []
+
+    for (let product of await model.getBasketProducts(ids)) {
+      const index = prefix+product.id
+      product.count = products[index].count
+      basketProducts.push(product)
+    }
+    products = basketProducts
   }
 
-  res.send(JSON.stringify(products));
+  res.send(JSON.stringify(products))
 })
 
-router.post('/add', function(req, res, next) {
-  let products = req.session.products;
+router.post('/add', function(req, res) {
+  let products = req.session.products || {}
   const {added_product} = req.body
 
-  if (!Array.isArray(products)) {
-    products = [];
+  if (Object.keys(products).length !== 0 && prefix+added_product in products) {
+    const index = prefix+added_product
+    products[index].count += 1
+  } else {
+    let index = prefix+added_product
+    products[index] = {count:1, product_id: added_product}
   }
 
-  products.push(added_product);
-  req.session.products = products;
+  req.session.products = products
   req.session.save()
-  res.send(JSON.stringify({status:'success'}));
+  res.send(JSON.stringify({status:'success'}))
 });
 
-router.post('/remove', function(req, res, next) {
-  let products = req.session.products;
+router.post('/remove', function(req, res) {
+  let products = req.session.products || {}
   const {removed_product} = req.body
 
-  if (Array.isArray(products) && products.length > 0) {
-    let index;
+  if (Object.keys(products).length !== 0 && prefix+removed_product in products) {
+    const index = prefix+removed_product
 
-    if (index = products.indexOf(removed_product)) {
-      array.splice(index, 1);
-      req.session.products = products;
-      req.session.save()
+    if (products[index].count > 1) {
+      products[index].count -= 1
+    } else {
+      delete products[index]
     }
+    req.session.products = products
+    req.session.save()
   }
 
-  res.send(JSON.stringify({status:'success'}));
+  res.send(JSON.stringify({status:'success'}))
 });
 
-module.exports = router;
+module.exports = router
