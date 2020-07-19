@@ -1,0 +1,9 @@
+Dockerfile
+node_modules
+.git
+.gitignore
+package-lock.json
+.idea
+.env_example
+.env_stage
+README.md
