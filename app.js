@@ -13,6 +13,7 @@ require('dotenv').config();
 const {connection, query} = require('./libs/mysql_connection');
 const redis = require('redis');
 const session = require('express-session');
+const helmet = require('helmet');
 
 var app = express();
 
@@ -24,6 +25,7 @@ app.set('view engine', 'jade');
 let RedisStore = require('connect-redis')(session)
 let redisClient = redis.createClient({host: process.env.REDIS_HOST})
 
+app.use(helmet());
 app.use(
     session({
         store: new RedisStore({ client: redisClient }),
