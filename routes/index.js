@@ -1,9 +1,13 @@
-var express = require('express');
-var router = express.Router();
+const indexRouter = require('./base');
+const productsRouter = require('./products');
+const basketRouter = require('./basket');
+const orderRouter = require('./order');
 
-/* GET home page. */
-router.get('/', function(req, res) {
-  res.render('index', { title: 'Express' });
-});
+function routes(app) {
+    app.use('/', indexRouter);
+    app.use('/products', productsRouter);
+    app.use('/basket', basketRouter);
+    app.use('/order', orderRouter);
+}
 
-module.exports = router;
+module.exports = routes;

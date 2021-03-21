@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "pm2 start ./bin/www"
+    "start": "node ./bin/www"
   },
   "dependencies": {
     "async": "^3.2.0",
@@ -20,7 +20,6 @@
     "morgan": "~1.9.1",
     "mysql": "github:mysqljs/mysql",
     "nodemon": "^2.0.4",
-    "pm2": "^4.4.0",
     "redis": "^3.0.2"
   }
 }

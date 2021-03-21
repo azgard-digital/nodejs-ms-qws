@@ -4,23 +4,20 @@ const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const csrf = require('csurf');
+const HttpError = require('./errors').HttpError;
 
-const indexRouter = require('./routes/index');
-const productsRouter = require('./routes/products');
-const basketRouter = require('./routes/basket');
-const orderRouter = require('./routes/order');
 require('dotenv').config();
-const {connection, query} = require('./libs/mysql_connection');
+const {connection, query} = require('./libs/mysqlConnection');
 const redis = require('redis');
 const session = require('express-session');
 const helmet = require('helmet');
 
-var app = express();
+const app = express();
 
+require('./routes')(app);
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
-
 
 let RedisStore = require('connect-redis')(session)
 let redisClient = redis.createClient({host: process.env.REDIS_HOST})
@@ -28,7 +25,7 @@ let redisClient = redis.createClient({host: process.env.REDIS_HOST})
 app.use(helmet());
 app.use(
     session({
-        store: new RedisStore({ client: redisClient }),
+        store: new RedisStore({client: redisClient}),
         secret: process.env.SESSION_SECRET,
         resave: false,
         saveUninitialized: true
@@ -36,36 +33,41 @@ app.use(
 )
 app.use(logger('dev'));
 app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+app.use(express.urlencoded({extended: false}));
 app.use(express.static(path.join(__dirname, 'public')));
 app.use((req, res, next) => {
-  req.db = query
-  next()
+    req.db = query
+    next()
 })
 
 app.use(cookieParser());
-app.use(csrf({ cookie: true }))
-const csrfProtection = csrf({ cookie: true });
+app.use(csrf({cookie: true}))
+const csrfProtection = csrf({cookie: true});
 
-app.use('/', indexRouter);
-app.use('/products', productsRouter);
-app.use('/basket', basketRouter);
-app.use('/order', orderRouter);
-app.get('/test',function(req,res){
-    res.sendFile(path.join(__dirname+'/views/test.html'));
-});
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
-  next(createError(404));
+    let err = new HttpError(404, "Page Not Found");
+    next(err);
 });
 
 // error handler
 app.use(function(err, req, res, next) {
-  res.locals.message = err.message;
-  res.locals.error = req.app.get('env') === 'development' ? err : {};
 
-  res.status(err.status || 500);
-  res.render('error');
+    err = req.app.get('env') === 'dev' ? err : {};
+    // render the error page
+    res.status(err.status || 500);
+
+    if (res.req.headers['x-requested-with'] == 'XMLHttpRequest') {
+        res.json(err);
+        return;
+    }
+
+    if (err.status == 404) {
+        res.sendFile(path.join(__dirname, '/views', '404.html'));
+        return;
+    }
+
+    res.sendFile(path.join(__dirname, '/views', '500.html'));
 });
 
 module.exports = app;

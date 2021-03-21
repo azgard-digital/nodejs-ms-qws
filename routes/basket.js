@@ -1,65 +1,64 @@
 const express = require('express')
 const router = express.Router()
-const ProductModel = require('../models/Products')
-const prefix = 'product_'
+const HttpError = require('../errors/http').HttpError;
+const Controller = require('../controllers/basketController')
 
-router.get('/', async function(req, res) {
-  let products = req.session.products || {}
+router.get('/', async function (req, res) {
+    const products = req.session.products
 
-  if (Object.keys(products).length !== 0) {
-    const model = new ProductModel(req.db)
-    const ids = []
-
-    for (let index in products) {
-      ids.push(products[index].product_id)
+    if (!products || !Object.keys(products).length) {
+        throw new HttpError(422, 'Unprocessable Entity');
     }
-    const basketProducts = []
 
-    for (let product of await model.getBasketProducts(ids)) {
-      const index = prefix+product.id
-      product.count = products[index].count
-      basketProducts.push(product)
+    try {
+        const controller = new Controller(req.db);
+        res.status(200).json(await controller.all(products));
+    } catch (e) {
+        if (e instanceof HttpError) {
+            throw e;
+        } else {
+            console.error(e);
+            throw new HttpError(422, 'Unprocessable Entity');
+        }
     }
-    products = basketProducts
-  }
-
-  res.send(JSON.stringify(products))
 })
 
-router.post('/add', function(req, res) {
-  let products = req.session.products || {}
-  const {added_product} = req.body
+router.post('/', function (req, res) {
+    try {
+        let products = req.session.products || {};
+        const addedProduct = req.body.added_product;
 
-  if (Object.keys(products).length !== 0 && prefix+added_product in products) {
-    const index = prefix+added_product
-    products[index].count += 1
-  } else {
-    let index = prefix+added_product
-    products[index] = {count:1, product_id: added_product}
-  }
-
-  req.session.products = products
-  req.session.save()
-  res.send(JSON.stringify({status:'success'}))
+        const controller = new Controller(req.db);
+        req.session.products = controller.add(products, addedProduct);
+        req.session.save()
+        res.status(200).json({status: 'success'});
+    } catch (e) {
+        if (e instanceof HttpError) {
+            throw e;
+        } else {
+            console.error(e);
+            throw new HttpError(422, 'Unprocessable Entity');
+        }
+    }
 });
 
-router.post('/remove', function(req, res) {
-  let products = req.session.products || {}
-  const {removed_product} = req.body
+router.delete('/', function (req, res) {
+    try {
+        let products = req.session.products || {};
+        const removedProduct = req.body.removed_product;
 
-  if (Object.keys(products).length !== 0 && prefix+removed_product in products) {
-    const index = prefix+removed_product
-
-    if (products[index].count > 1) {
-      products[index].count -= 1
-    } else {
-      delete products[index]
+        const controller = new Controller(req.db);
+        req.session.products = controller.delete(products, removedProduct);
+        req.session.save()
+        res.status(200).json({status: 'success'});
+    } catch (e) {
+        if (e instanceof HttpError) {
+            throw e;
+        } else {
+            console.error(e);
+            throw new HttpError(422, 'Unprocessable Entity');
+        }
     }
-    req.session.products = products
-    req.session.save()
-  }
-
-  res.send(JSON.stringify({status:'success'}))
 });
 
 module.exports = router
