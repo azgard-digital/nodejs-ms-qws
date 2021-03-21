@@ -1,4 +1,4 @@
-class Products {
+class Product {
     #db = null
 
     constructor(db) {
@@ -38,4 +38,4 @@ class Products {
     }
 }
 
-module.exports = Products
+module.exports = Product
