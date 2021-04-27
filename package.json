@@ -20,6 +20,6 @@
     "morgan": "~1.9.1",
     "mysql": "github:mysqljs/mysql",
     "nodemon": "^2.0.4",
-    "redis": "^3.0.2"
+    "redis": "^3.1.1"
   }
 }
