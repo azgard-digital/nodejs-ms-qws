@@ -6,7 +6,7 @@
     "start": "/app/start.sh"
   },
   "dependencies": {
-    "async": "^3.2.0",
+    "async": "^3.2.2",
     "connect-redis": "^5.0.0",
     "cookie-parser": "~1.4.4",
     "csurf": "^1.11.0",
